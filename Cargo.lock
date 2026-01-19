@@ -269,7 +269,7 @@ checksum = "1292c0d970b54115d14f2492fe0170adf21d68a1de108eebc51c1df4f346a091"
 
 [[package]]
 name = "zabawa-name"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "derive_more",
  "deunicode",

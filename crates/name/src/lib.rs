@@ -1,6 +1,7 @@
 use derive_more::{Display, Into};
 use thiserror::Error;
-use zabawa_validation::{InvalidLengthError, validate_length, validate_trimmed};
+pub use zabawa_validation::InvalidLengthError;
+use zabawa_validation::{validate_length, validate_trimmed};
 
 #[derive(Debug, Error)]
 pub enum NameError {
@@ -38,26 +39,16 @@ impl AsRef<str> for Name {
 }
 
 pub trait NameBulder {
+    type Name;
     type Error;
 
     fn validate(&self, input: &str) -> Result<(), Self::Error>;
 
     fn normalize(&self, input: &str) -> Result<String, Self::Error>;
 
-    fn build(&self, input: impl AsRef<str> + Into<String>) -> Result<Name, Self::Error> {
-        self.validate(input.as_ref())?;
+    fn build(&self, input: impl AsRef<str> + Into<String>) -> Result<Self::Name, Self::Error>;
 
-        Ok(Name::from_raw(input))
-    }
-
-    fn build_with_normalize(&self, input: impl AsRef<str> + Into<String>) -> Result<Name, Self::Error> {
-        if self.validate(input.as_ref()).is_ok() {
-            return Ok(Name::from_raw(input));
-        }
-
-        let normalized_input = self.normalize(input.as_ref())?;
-        self.build(normalized_input)
-    }
+    fn build_with_normalize(&self, input: impl AsRef<str> + Into<String>) -> Result<Self::Name, Self::Error>;
 }
 
 #[derive(Debug, Default)]
@@ -110,6 +101,7 @@ impl DefaultNameBuilder {
 }
 
 impl NameBulder for DefaultNameBuilder {
+    type Name = Name;
     type Error = NameError;
 
     fn validate(&self, input: &str) -> Result<(), Self::Error> {
@@ -147,6 +139,21 @@ impl NameBulder for DefaultNameBuilder {
         }
 
         Ok(normalized)
+    }
+
+    fn build(&self, input: impl AsRef<str> + Into<String>) -> Result<Self::Name, Self::Error> {
+        self.validate(input.as_ref())?;
+
+        Ok(Name::from_raw(input))
+    }
+
+    fn build_with_normalize(&self, input: impl AsRef<str> + Into<String>) -> Result<Self::Name, Self::Error> {
+        if self.validate(input.as_ref()).is_ok() {
+            return Ok(Name::from_raw(input));
+        }
+
+        let normalized_input = self.normalize(input.as_ref())?;
+        self.build(normalized_input)
     }
 }
 
