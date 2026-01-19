@@ -1,0 +1,10 @@
+[package]
+name = "zabawa-name"
+version = "0.1.0"
+edition.workspace = true
+
+[dependencies]
+derive_more = { workspace = true }
+deunicode = { workspace = true }
+thiserror = { workspace = true }
+zabawa-validation = { workspace = true }

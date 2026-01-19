@@ -1,0 +1,8 @@
+[package]
+name = "zabawa-notification-view"
+version = "0.1.0"
+edition.workspace = true
+
+[dependencies]
+hypertext = { workspace = true }
+zabawa-notification-domain = { workspace = true }

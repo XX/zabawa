@@ -1,0 +1,10 @@
+**/target/
+**/*.rs.bk
+tmp/
+
+TODO.*
+NOTES.*
+
+**/.idea
+**/*.iml
+**/.vscode
