@@ -1,6 +1,6 @@
 use thiserror::Error;
 
-#[derive(Error, Debug, Clone, PartialEq)]
+#[derive(Error, Debug, Clone, Copy, PartialEq)]
 #[error("invalid length: expected {min}-{max} characters, got {actual}")]
 pub struct InvalidLengthError {
     pub min: usize,

@@ -3,7 +3,7 @@ use thiserror::Error;
 pub use zabawa_validation::InvalidLengthError;
 use zabawa_validation::{validate_length, validate_trimmed};
 
-#[derive(Debug, Error)]
+#[derive(Debug, Clone, Copy, Error)]
 pub enum NameError {
     #[error("name has leading or trailing whitespaces")]
     Untrimmed,
@@ -15,7 +15,7 @@ pub enum NameError {
     InvalidCharacters(#[from] InvalidCharactersError),
 }
 
-#[derive(Error, Debug, Clone, PartialEq)]
+#[derive(Error, Debug, Clone, Copy, PartialEq)]
 #[error("invalid characters")]
 pub struct InvalidCharactersError;
 
