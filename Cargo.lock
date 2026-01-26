@@ -283,10 +283,11 @@ version = "0.1.0"
 
 [[package]]
 name = "zabawa-notification-view"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "hypertext",
  "zabawa-notification-domain",
+ "zabawa-view-common",
 ]
 
 [[package]]
@@ -294,4 +295,11 @@ name = "zabawa-validation"
 version = "0.1.0"
 dependencies = [
  "thiserror",
+]
+
+[[package]]
+name = "zabawa-view-common"
+version = "0.1.0"
+dependencies = [
+ "hypertext",
 ]

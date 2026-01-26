@@ -1,8 +1,6 @@
-pub mod context;
-pub mod notification;
+pub mod animation;
 
-pub use self::context::*;
-pub use self::notification::*;
+pub use self::animation::*;
 
 pub mod hypertext_elements {
     use hypertext::define_elements;
@@ -11,8 +9,5 @@ pub mod hypertext_elements {
 
     define_elements! {
         wa_animation { name duration iterations }
-        wa_button { appearance variant size }
-        wa_icon { slot name library variant label role aria_label }
-        wa_callout { variant }
     }
 }
