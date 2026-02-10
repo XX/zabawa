@@ -7,3 +7,6 @@ edition.workspace = true
 hypertext = { workspace = true }
 zabawa-notification-domain = { workspace = true }
 zabawa-view-common = { workspace = true }
+
+[package.metadata.web-assets]
+dir = "assets"

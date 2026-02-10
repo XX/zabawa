@@ -2,14 +2,56 @@ use std::borrow::Cow;
 
 use hypertext::prelude::GlobalAttributes;
 use hypertext::{Renderable, rsx};
+use zabawa_notification_domain::model::{Notification, NotificationLevel};
 use zabawa_view_common::Animation;
 
-use crate::{NotificationViewData, Notifications, hypertext_elements};
+use crate::{Notifications, hypertext_elements};
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct NotificationViewData<'a> {
+    pub variant: &'static str,
+    pub icon: &'static str,
+    pub message: &'a str,
+}
+
+impl<'a> From<&'a Notification> for NotificationViewData<'a> {
+    fn from(notification: &'a Notification) -> NotificationViewData<'a> {
+        let message = &notification.message;
+        match notification.level {
+            NotificationLevel::Error => NotificationViewData {
+                variant: "danger",
+                icon: "circle-exclamation",
+                message,
+            },
+            NotificationLevel::Warning => NotificationViewData {
+                variant: "warning",
+                icon: "triangle-exclamation",
+                message,
+            },
+            NotificationLevel::Success => NotificationViewData {
+                variant: "success",
+                icon: "circle-check",
+                message,
+            },
+            NotificationLevel::Info => NotificationViewData {
+                variant: "brand",
+                icon: "circle-info",
+                message,
+            },
+            NotificationLevel::Note => NotificationViewData {
+                variant: "neutral",
+                icon: "pen-to-square",
+                message,
+            },
+        }
+    }
+}
 
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct NotificationView {
     pub animation: Option<Animation>,
     pub callout_script: Option<Cow<'static, str>>,
+    pub close_button_enabled: bool,
 }
 
 impl NotificationView {
@@ -20,7 +62,8 @@ impl NotificationView {
                 duration: 500,
                 iterations: 1,
             }),
-            callout_script: Some(Cow::Borrowed("close_callout()")),
+            callout_script: Some(Cow::Borrowed("close_notification()")),
+            close_button_enabled: true,
         }
     }
 
@@ -44,21 +87,40 @@ impl NotificationView {
         self
     }
 
-    pub fn render<'a>(
+    pub fn with_close_button(mut self, enabled: bool) -> Self {
+        self.close_button_enabled = enabled;
+        self
+    }
+
+    pub fn render<'a>(&self, view_data: NotificationViewData<'a>) -> impl Renderable {
+        rsx! {
+            @if let Some(animation) = &self.animation {
+                (animation.render(self.render_callout(view_data)))
+            } @else {
+                (self.render_callout(view_data))
+            }
+        }
+    }
+
+    pub fn render_callout<'a>(
         &self,
         NotificationViewData { variant, icon, message }: NotificationViewData<'a>,
     ) -> impl Renderable {
         rsx! {
             <wa-callout class={ "notification-" (variant) } variant=(variant)>
                 <wa-icon slot="icon" name=(icon)></wa-icon>
-                <div class="wa-flank:end wa-align-items-start">
-                    <div>(message)</div>
-                    <div>
-                        <wa-button class="close" appearance="plain" variant=(variant) size="small">
-                            <wa-icon name="xmark" library="system" variant="solid" label="Close" role="img" aria-label="Close"></wa-icon>
-                        </wa-button>
+                @if self.close_button_enabled {
+                    <div class="wa-flank:end wa-align-items-start">
+                        <div>(message)</div>
+                        <div>
+                            <wa-button class="close" appearance="plain" variant=(variant) size="small">
+                                <wa-icon name="xmark" library="system" variant="solid" label="Close" role="img" aria-label="Close"></wa-icon>
+                            </wa-button>
+                        </div>
                     </div>
-                </div>
+                } @else {
+                    (message)
+                }
                 @if let Some(script) = &self.callout_script {
                     <script>(script)</script>
                 }
@@ -69,11 +131,7 @@ impl NotificationView {
     pub fn render_list<'a>(&self, notifications: Notifications<'a>) -> impl Renderable {
         rsx! {
             @for view_data in notifications.iter() {
-                @if let Some(animation) = &self.animation {
-                    (animation.render(self.render(view_data)))
-                } @else {
-                    (self.render(view_data))
-                }
+                (self.render(view_data))
             }
         }
     }
