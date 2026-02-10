@@ -19,3 +19,4 @@ zabawa-notification-domain = { path = "crates/notification-domain" }
 zabawa-notification-view = { path = "crates/notification-view" }
 zabawa-validation = { path = "crates/validation" }
 zabawa-view-common = { path = "crates/view-common" }
+serde_json = "1.0"

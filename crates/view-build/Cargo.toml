@@ -1,0 +1,8 @@
+[package]
+name = "zabawa-view-build"
+version = "0.1.0"
+edition.workspace = true
+
+[dependencies]
+serde_json = { workspace = true }
+thiserror = { workspace = true }
