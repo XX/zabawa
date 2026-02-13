@@ -40,6 +40,7 @@ pub struct Assets {
     use_exclude_env_var: bool,
     use_workspace_root: bool,
     rerun_if_src_changed: bool,
+    metadata: Option<Value>,
 }
 
 impl Assets {
@@ -72,6 +73,15 @@ impl Assets {
         self
     }
 
+    pub fn fill_metadata(mut self) -> Result<Self, Error> {
+        self.metadata = Some(cargo_metadata()?);
+        Ok(self)
+    }
+
+    pub fn get_metadata(&self) -> Option<&Value> {
+        self.metadata.as_ref()
+    }
+
     pub fn copy(self) -> Result<HashMap<String, (PathBuf, PathBuf)>, Error> {
         let Self {
             mut exclude,
@@ -79,8 +89,9 @@ impl Assets {
             use_exclude_env_var,
             use_workspace_root,
             rerun_if_src_changed,
+            metadata,
         } = self;
-        let metadata = cargo_metadata()?;
+        let metadata = metadata.map(Ok).unwrap_or_else(|| cargo_metadata())?;
         let packages = metadata["packages"].as_array().expect("packages should be an array");
 
         if use_exclude_env_var {
@@ -136,7 +147,6 @@ impl Assets {
             if let Err(err) = copy_dir_recursive(&src_dir, &dst_dir) {
                 return Err(Error::FailedToCopyAssetsDir(src_dir, dst_dir, err));
             }
-            println!("cargo:warning=web-assets: copied '{name}' → {}/", dst_dir.display());
 
             copied_asset_dirs.insert(name.to_string(), (src_dir, dst_dir));
         }
@@ -145,7 +155,7 @@ impl Assets {
     }
 }
 
-fn cargo_metadata() -> Result<Value, Error> {
+pub fn cargo_metadata() -> Result<Value, Error> {
     let output = Command::new("cargo")
         .args(["metadata", "--format-version=1"])
         .output()
@@ -158,20 +168,11 @@ fn cargo_metadata() -> Result<Value, Error> {
     Ok(serde_json::from_slice(&output.stdout)?)
 }
 
-fn excluded_packages() -> HashSet<String> {
-    env::var("WEB_ASSETS_EXCLUDE")
-        .unwrap_or_default()
-        .split(',')
-        .map(str::trim)
-        .filter_map(|var| if !var.is_empty() { Some(var.to_string()) } else { None })
-        .collect()
-}
-
-fn copy_dir_recursive(src: &Path, dst: &Path) -> io::Result<()> {
+pub fn copy_dir_recursive(src: &Path, dst: &Path) -> io::Result<()> {
     fs::create_dir_all(dst)?;
 
     for entry in fs::read_dir(src)? {
-        let entry = entry.expect("dir entry failed");
+        let entry = entry?;
         let src_path = entry.path();
         let dst_path = dst.join(entry.file_name());
 
@@ -183,4 +184,13 @@ fn copy_dir_recursive(src: &Path, dst: &Path) -> io::Result<()> {
     }
 
     Ok(())
+}
+
+fn excluded_packages() -> HashSet<String> {
+    env::var("WEB_ASSETS_EXCLUDE")
+        .unwrap_or_default()
+        .split(',')
+        .map(str::trim)
+        .filter_map(|var| if !var.is_empty() { Some(var.to_string()) } else { None })
+        .collect()
 }
