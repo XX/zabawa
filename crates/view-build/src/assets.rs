@@ -91,7 +91,7 @@ impl Assets {
             rerun_if_src_changed,
             metadata,
         } = self;
-        let metadata = metadata.map(Ok).unwrap_or_else(|| cargo_metadata())?;
+        let metadata = metadata.map(Ok).unwrap_or_else(cargo_metadata)?;
         let packages = metadata["packages"].as_array().expect("packages should be an array");
 
         if use_exclude_env_var {
